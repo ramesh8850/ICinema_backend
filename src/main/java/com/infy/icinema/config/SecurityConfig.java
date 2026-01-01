@@ -22,10 +22,13 @@ public class SecurityConfig {
     @Autowired
     private AuthenticationProvider authenticationProvider;
 
+    @Autowired
+    private org.springframework.web.cors.CorsConfigurationSource corsConfigurationSource;
+
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         return http.csrf(csrf -> csrf.disable())
-                .cors(cors -> cors.configure(http))
+                .cors(cors -> cors.configurationSource(corsConfigurationSource))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/users/register", "/api/users/login", "/actuator/health",
                                 "/booking/preview/**", "/api/movies/**", "/api/shows/**", "/api/theatres/**")
