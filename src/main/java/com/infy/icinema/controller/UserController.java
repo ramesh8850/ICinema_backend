@@ -1,7 +1,6 @@
 package com.infy.icinema.controller;
 
 import com.infy.icinema.dto.UserDTO;
-import com.infy.icinema.service.UserService;
 import com.infy.icinema.utility.ResponseHandler;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,7 +13,10 @@ import org.springframework.web.bind.annotation.*;
 
 public class UserController {
     @Autowired
-    private UserService userService;
+    private com.infy.icinema.config.JwtUtils jwtUtils;
+
+    @Autowired
+    private com.infy.icinema.service.UserService userService;
 
     @PostMapping("/register")
     public ResponseEntity<Object> registerUser(@Valid @RequestBody UserDTO userDTO) {
@@ -24,8 +26,12 @@ public class UserController {
 
     @PostMapping("/login")
     public ResponseEntity<Object> loginUser(@RequestBody UserDTO loginDetails) {
-        // Validation could be added here too if LoginDTO existed, or partial validation
+        UserDTO user = userService.loginUser(loginDetails.getEmail(), loginDetails.getPassword());
+        String token = jwtUtils.generateToken(user.getEmail());
+        java.util.Map<String, Object> response = new java.util.HashMap<>();
+        response.put("user", user);
+        response.put("token", token);
         return new ResponseEntity<>(ResponseHandler.generateResponse("Login successful!", HttpStatus.OK,
-                userService.loginUser(loginDetails.getEmail(), loginDetails.getPassword())), HttpStatus.OK);
+                response), HttpStatus.OK);
     }
 }
