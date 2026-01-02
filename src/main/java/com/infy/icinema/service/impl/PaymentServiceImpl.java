@@ -31,8 +31,6 @@ public class PaymentServiceImpl implements PaymentService {
     private TicketRepository ticketRepository;
     @Autowired
     private ShowSeatRepository showSeatRepository;
-    @Autowired
-    private ModelMapper modelMapper;
 
     @Override
     public PaymentDTO makePayment(PaymentDTO paymentDTO) {
@@ -60,12 +58,23 @@ public class PaymentServiceImpl implements PaymentService {
         }
 
         // 3. Save Payment
-        Payment payment = modelMapper.map(paymentDTO, Payment.class);
+        Payment payment = new Payment();
+        payment.setAmountPaid(paymentDTO.getAmountPaid());
+        payment.setPaymentMode(paymentDTO.getPaymentMode());
         payment.setTransactionId(transactionId);
         payment.setPaymentTime(LocalDateTime.now());
         payment.setBooking(booking);
 
         Payment savedPayment = paymentRepository.save(payment);
-        return modelMapper.map(savedPayment, PaymentDTO.class);
+
+        PaymentDTO responseDTO = new PaymentDTO();
+        responseDTO.setId(savedPayment.getId());
+        responseDTO.setTransactionId(savedPayment.getTransactionId());
+        responseDTO.setAmountPaid(savedPayment.getAmountPaid());
+        responseDTO.setPaymentTime(savedPayment.getPaymentTime());
+        responseDTO.setPaymentMode(savedPayment.getPaymentMode());
+        responseDTO.setBookingId(savedPayment.getBooking().getId());
+
+        return responseDTO;
     }
 }

@@ -17,30 +17,32 @@ import org.springframework.web.cors.CorsConfigurationSource;
 @EnableMethodSecurity
 public class SecurityConfig {
 
-    @Autowired
-    private JwtAuthFilter authFilter;
+        @Autowired
+        private JwtAuthFilter authFilter;
 
-    @Autowired
-    private AuthenticationProvider authenticationProvider;
+        @Autowired
+        private AuthenticationProvider authenticationProvider;
 
-    // Inject the source you defined in WebConfig
-    @Autowired
-    private CorsConfigurationSource corsConfigurationSource;
+        // Inject the source you defined in WebConfig
+        @Autowired
+        private CorsConfigurationSource corsConfigurationSource;
 
-    @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-        return http
-                .csrf(csrf -> csrf.disable())
-                // Explicitly pass the configuration source
-                .cors(cors -> cors.configurationSource(corsConfigurationSource))
-                .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/users/register", "/api/users/login", "/actuator/health",
-                                "/booking/preview/**", "/api/movies/**", "/api/shows/**", "/api/theatres/**")
-                        .permitAll()
-                        .anyRequest().authenticated())
-                .sessionManagement(sess -> sess.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                .authenticationProvider(authenticationProvider)
-                .addFilterBefore(authFilter, UsernamePasswordAuthenticationFilter.class)
-                .build();
-    }
+        @Bean
+        public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+                return http
+                                .csrf(csrf -> csrf.disable())
+                                // Explicitly pass the configuration source
+                                .cors(cors -> cors.configurationSource(corsConfigurationSource))
+                                .authorizeHttpRequests(auth -> auth
+                                                .requestMatchers("/api/users/register/**", "/api/users/login/**",
+                                                                "/actuator/health/**",
+                                                                "/booking/preview/**", "/api/movies/**",
+                                                                "/api/shows/**", "/api/theatres/**")
+                                                .permitAll()
+                                                .anyRequest().authenticated())
+                                .sessionManagement(sess -> sess.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                                .authenticationProvider(authenticationProvider)
+                                .addFilterBefore(authFilter, UsernamePasswordAuthenticationFilter.class)
+                                .build();
+        }
 }

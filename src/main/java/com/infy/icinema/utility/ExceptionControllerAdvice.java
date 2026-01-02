@@ -11,6 +11,16 @@ import java.time.LocalDateTime;
 @RestControllerAdvice
 public class ExceptionControllerAdvice {
 
+    @ExceptionHandler(org.springframework.web.HttpRequestMethodNotSupportedException.class)
+    public ResponseEntity<ErrorInfo> handleMethodNotSupportedException(
+            org.springframework.web.HttpRequestMethodNotSupportedException exception) {
+        ErrorInfo error = new ErrorInfo();
+        error.setErrorMessage(exception.getMessage());
+        error.setErrorCode(HttpStatus.METHOD_NOT_ALLOWED.value());
+        error.setErrorTimeStamp(LocalDateTime.now());
+        return new ResponseEntity<>(error, HttpStatus.METHOD_NOT_ALLOWED);
+    }
+
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorInfo> handleGeneralException(Exception exception) {
         ErrorInfo error = new ErrorInfo();
