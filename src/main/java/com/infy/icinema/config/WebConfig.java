@@ -21,7 +21,9 @@ public class WebConfig {
 
         // When allowCredentials is true, we must be specific with origins
         config.setAllowCredentials(true);
-        config.setAllowedOrigins(Arrays.asList(allowedOrigins.split(",")));
+        config.setAllowedOrigins(Arrays.stream(allowedOrigins.split(","))
+                .map(String::trim)
+                .collect(java.util.stream.Collectors.toList()));
         config.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
         config.setAllowedHeaders(Arrays.asList("Origin", "Content-Type", "Accept", "Authorization"));
         config.setExposedHeaders(Arrays.asList("Authorization")); // Important for JWT

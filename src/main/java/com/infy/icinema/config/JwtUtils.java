@@ -19,7 +19,13 @@ public class JwtUtils {
     // In production, this should be stored in environment variables (e.g.
     // JWT_SECRET)
     // Generating a safe key for HS256
-    private final SecretKey SECRET_KEY = Keys.secretKeyFor(SignatureAlgorithm.HS256);
+    @org.springframework.beans.factory.annotation.Value("${jwt.secret}")
+    private String secret;
+
+    private SecretKey getSigningKey() {
+        byte[] keyBytes = io.jsonwebtoken.io.Decoders.BASE64.decode(secret);
+        return Keys.hmacShaKeyFor(keyBytes);
+    }
 
     // 10 hours expiration
     private final long JWT_TOKEN_VALIDITY = 1000 * 60 * 60 * 10;
@@ -38,7 +44,7 @@ public class JwtUtils {
     }
 
     private Claims extractAllClaims(String token) {
-        return Jwts.parserBuilder().setSigningKey(SECRET_KEY).build().parseClaimsJws(token).getBody();
+        return Jwts.parserBuilder().setSigningKey(getSigningKey()).build().parseClaimsJws(token).getBody();
     }
 
     private Boolean isTokenExpired(String token) {
@@ -56,7 +62,7 @@ public class JwtUtils {
                 .setSubject(subject)
                 .setIssuedAt(new Date(System.currentTimeMillis()))
                 .setExpiration(new Date(System.currentTimeMillis() + JWT_TOKEN_VALIDITY))
-                .signWith(SECRET_KEY, SignatureAlgorithm.HS256)
+                .signWith(getSigningKey(), SignatureAlgorithm.HS256)
                 .compact();
     }
 
