@@ -1,6 +1,8 @@
 package com.infy.icinema.controller;
 
+import com.infy.icinema.config.JwtUtils;
 import com.infy.icinema.dto.UserDTO;
+import com.infy.icinema.service.UserService;
 import com.infy.icinema.utility.ResponseHandler;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -8,15 +10,17 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.HashMap;
+import java.util.Map;
+
 @RestController
 @RequestMapping("/api/users")
-
 public class UserController {
     @Autowired
-    private com.infy.icinema.config.JwtUtils jwtUtils;
+    private JwtUtils jwtUtils;
 
     @Autowired
-    private com.infy.icinema.service.UserService userService;
+    private UserService userService;
 
     @PostMapping("/register")
     public ResponseEntity<Object> registerUser(@Valid @RequestBody UserDTO userDTO) {
@@ -28,7 +32,7 @@ public class UserController {
     public ResponseEntity<Object> loginUser(@RequestBody UserDTO loginDetails) {
         UserDTO user = userService.loginUser(loginDetails.getEmail(), loginDetails.getPassword());
         String token = jwtUtils.generateToken(user.getEmail());
-        java.util.Map<String, Object> response = new java.util.HashMap<>();
+        Map<String, Object> response = new HashMap<>();
         response.put("user", user);
         response.put("token", token);
         return new ResponseEntity<>(ResponseHandler.generateResponse("Login successful!", HttpStatus.OK,

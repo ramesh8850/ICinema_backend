@@ -1,6 +1,7 @@
 package com.infy.icinema.service;
 
 import com.infy.icinema.dto.ShowDTO;
+import com.infy.icinema.dto.ShowSeatDTO;
 import java.util.List;
 
 public interface ShowService {
@@ -8,7 +9,7 @@ public interface ShowService {
 
     ShowDTO addShow(ShowDTO showDTO);
 
-    java.util.List<com.infy.icinema.dto.ShowSeatDTO> getShowSeats(Long showId);
+    List<ShowSeatDTO> getShowSeats(Long showId);
 
     ShowDTO getShowById(Long showId);
 }

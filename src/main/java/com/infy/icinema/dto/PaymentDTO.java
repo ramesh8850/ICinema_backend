@@ -1,5 +1,6 @@
 package com.infy.icinema.dto;
 
+import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 import java.time.LocalDateTime;
 
@@ -9,14 +10,14 @@ public class PaymentDTO {
 
     private String transactionId;
 
-    @jakarta.validation.constraints.NotNull(message = "Amount paid cannot be null")
+    @NotNull(message = "Amount paid cannot be null")
     private Double amountPaid;
 
     private LocalDateTime paymentTime;
 
-    @jakarta.validation.constraints.NotNull(message = "Payment mode cannot be null")
+    @NotNull(message = "Payment mode cannot be null")
     private String paymentMode; // 'CREDIT_CARD', 'DEBIT_CARD'
 
-    @jakarta.validation.constraints.NotNull(message = "Booking ID cannot be null")
+    @NotNull(message = "Booking ID cannot be null")
     private Long bookingId;
 }

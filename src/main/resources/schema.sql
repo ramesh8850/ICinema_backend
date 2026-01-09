@@ -1,6 +1,6 @@
-DROP DATABASE IF EXISTS icinema_db;
-CREATE DATABASE icinema_db;
-USE icinema_db;
+-- DROP DATABASE IF EXISTS icinema_db;
+-- CREATE DATABASE icinema_db;
+-- USE icinema_db;
 
 -- Users Table
 CREATE TABLE IF NOT EXISTS users (
@@ -121,7 +121,7 @@ CREATE TABLE IF NOT EXISTS payments (
 );
 
 -- Dummy Data for Users
-INSERT INTO users (username, email, password, mobile_number) VALUES
+INSERT IGNORE INTO users (username, email, password, mobile_number) VALUES
 ('alice_w', 'alice@example.com', 'pass123', '1234567890'),
 ('bob_m', 'bob@example.com', 'pass123', '1234567891'),
 ('charlie_d', 'charlie@example.com', 'pass123', '1234567892'),
@@ -134,7 +134,7 @@ INSERT INTO users (username, email, password, mobile_number) VALUES
 ('judy_z', 'judy@example.com', 'pass123', '1234567899');
 
 -- Dummy Data for Movies
-INSERT INTO movies (title, description, genre, release_date, duration_minutes, average_rating, language, image_url, censor_rating) VALUES
+INSERT IGNORE INTO movies (title, description, genre, release_date, duration_minutes, average_rating, language, image_url, censor_rating) VALUES
 ('Inception', 'A thief who steals corporate secrets through the use of dream-sharing technology is given the inverse task of planting an idea into the mind of a C.E.O.', 'Sci-Fi', '2010-07-16', 148, 4.8, 'English', 'https://image.tmdb.org/t/p/original/9gk7adHYeDvHkCSEqAvQNLV5Uge.jpg', 'UA'),
 ('The Dark Knight', 'When the menace known as the Joker wreaks havoc and chaos on the people of Gotham, Batman must accept one of the greatest psychological and physical tests of his ability to fight injustice.', 'Action', '2008-07-18', 152, 4.9, 'English', 'https://image.tmdb.org/t/p/original/qJ2tW6WMUDux911r6m7haRef0WH.jpg', 'UA'),
 ('Interstellar', 'A team of explorers travel through a wormhole in space in an attempt to ensure humanity''s survival.', 'Sci-Fi', '2014-11-07', 169, 4.7, 'English', 'https://image.tmdb.org/t/p/original/gEU2QniL6E8ahMc996hKfb7KD87.jpg', 'UA'),
@@ -148,7 +148,7 @@ INSERT INTO movies (title, description, genre, release_date, duration_minutes, a
 
 -- Dummy Data for Theatres
 -- Dummy Data for Theatres
-INSERT INTO theatres (name, city, address) VALUES
+INSERT IGNORE INTO theatres (name, city, address) VALUES
 ('PVR Koramangala', 'Bangalore', 'The Forum Mall, Koramangala'),
 ('INOX Lido', 'Bangalore', 'Off MG Road, Ulsoor'),
 ('Cinepolis Seasons', 'Pune', 'Seasons Mall, Magarpatta City'),
@@ -170,7 +170,7 @@ INSERT INTO theatres (name, city, address) VALUES
 
 /*
 -- Dummy Data for Screens
-INSERT INTO screens (screen_name, theatre_id, total_seats) VALUES
+INSERT IGNORE INTO screens (screen_name, theatre_id, total_seats) VALUES
 ('Gold Class', 1, 50),
 ('Premiere', 1, 150),
 ('Audi 1', 2, 120),
@@ -183,20 +183,20 @@ INSERT INTO screens (screen_name, theatre_id, total_seats) VALUES
 ('Screen 2', 5, 200);
 
 -- Dummy Data for Seats (Sample for Screen 1)
-INSERT INTO seats (seat_number, row_name, seat_type, screen_id) VALUES
+INSERT IGNORE INTO seats (seat_number, row_name, seat_type, screen_id) VALUES
 (1, 'A', 'SILVER', 1), (2, 'A', 'SILVER', 1), (3, 'A', 'SILVER', 1), (4, 'A', 'SILVER', 1),
 (1, 'B', 'GOLD', 1), (2, 'B', 'GOLD', 1);
 
 -- Dummy Data for Shows
-INSERT INTO shows (movie_id, screen_id, show_date, show_time, price_silver, price_gold, price_platinum) VALUES
-(1, 1, '2023-12-01', '10:00:00', 10.0, 15.0, 25.0),
-(1, 1, '2023-12-01', '14:00:00', 12.0, 18.0, 30.0),
-(2, 2, '2023-12-01', '11:00:00', 10.0, 15.0, 25.0),
-(2, 2, '2023-12-01', '15:00:00', 12.0, 18.0, 30.0),
-(3, 1, '2023-12-01', '18:00:00', 15.0, 25.0, 40.0);
+INSERT IGNORE INTO shows (movie_id, screen_id, show_date, show_time, price_silver, price_gold, price_platinum) VALUES
+(1, 1, '2026-12-01', '10:00:00', 10.0, 15.0, 25.0),
+(1, 1, '2026-12-01', '14:00:00', 12.0, 18.0, 30.0),
+(2, 2, '2026-12-01', '11:00:00', 10.0, 15.0, 25.0),
+(2, 2, '2026-12-01', '15:00:00', 12.0, 18.0, 30.0),
+(3, 1, '2026-12-01', '18:00:00', 15.0, 25.0, 40.0);
 
 -- Dummy Data for Show Seats (Sample for Show 1)
-INSERT INTO show_seats (status, price, show_id, seat_id) VALUES
+INSERT IGNORE INTO show_seats (status, price, show_id, seat_id) VALUES
 ('AVAILABLE', 10.0, 1, 1),
 ('AVAILABLE', 10.0, 1, 2),
 ('BOOKED', 10.0, 1, 3),
@@ -205,24 +205,23 @@ INSERT INTO show_seats (status, price, show_id, seat_id) VALUES
 ('AVAILABLE', 20.0, 1, 6);
 
 -- Dummy Data for Bookings
-INSERT INTO bookings (booking_date, total_amount, booking_status, user_id, show_id) VALUES
-('2023-11-30 10:00:00', 20.0, 'CONFIRMED', 1, 1),
-('2023-11-30 11:00:00', 10.0, 'PENDING', 2, 1);
+INSERT IGNORE INTO bookings (booking_date, total_amount, booking_status, user_id, show_id) VALUES
+('2026-11-30 10:00:00', 20.0, 'CONFIRMED', 1, 1),
+('2026-11-30 11:00:00', 10.0, 'PENDING', 2, 1);
 
 -- Dummy Data for Payments
-INSERT INTO payments (transaction_id, amount_paid, payment_time, payment_mode, booking_id) VALUES
-('TXN123456789', 20.0, '2023-11-30 10:00:00', 'CREDIT_CARD', 1),
-('TXN234567890', 10.0, '2023-11-30 11:00:00', 'DEBIT_CARD', 2);
+INSERT IGNORE INTO payments (transaction_id, amount_paid, payment_time, payment_mode, booking_id) VALUES
+('TXN123456789', 20.0, '2026-11-30 10:00:00', 'CREDIT_CARD', 1),
+('TXN234567890', 10.0, '2026-11-30 11:00:00', 'DEBIT_CARD', 2);
 
 -- Dummy Data for Tickets
-INSERT INTO tickets (booking_id, show_seat_id) VALUES
+INSERT IGNORE INTO tickets (booking_id, show_seat_id) VALUES
 (1, 3), (1, 4);
 
 */
 
+
 -- Dummy Data for Reviews (Safe to restore as Users and Movies are static)
-INSERT INTO reviews (user_id, movie_id, rating, comment) VALUES
+INSERT IGNORE INTO reviews (user_id, movie_id, rating, comment) VALUES
 (1, 1, 5, 'Great movie!'),
 (2, 2, 4, 'Good movie!');
-
-

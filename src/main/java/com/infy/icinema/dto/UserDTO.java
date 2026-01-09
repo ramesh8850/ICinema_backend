@@ -1,23 +1,27 @@
 package com.infy.icinema.dto;
 
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Pattern;
+import jakarta.validation.constraints.Size;
 import lombok.Data;
 
 @Data
 public class UserDTO {
     private Long id;
 
-    @jakarta.validation.constraints.NotBlank(message = "Username cannot be blank")
+    @NotBlank(message = "Username cannot be blank")
     private String username;
 
-    @jakarta.validation.constraints.NotBlank(message = "Password cannot be blank")
-    @jakarta.validation.constraints.Size(min = 6, message = "Password must be at least 6 characters")
+    @NotBlank(message = "Password cannot be blank")
+    @Size(min = 6, message = "Password must be at least 6 characters")
     private String password;
 
-    @jakarta.validation.constraints.NotBlank(message = "Email cannot be blank")
-    @jakarta.validation.constraints.Email(message = "Invalid email format")
+    @NotBlank(message = "Email cannot be blank")
+    @Email(message = "Invalid email format")
     private String email;
 
-    @jakarta.validation.constraints.NotBlank(message = "Mobile number cannot be blank")
-    @jakarta.validation.constraints.Pattern(regexp = "^\\d{10}$", message = "Mobile number must be 10 digits")
+    @NotBlank(message = "Mobile number cannot be blank")
+    @Pattern(regexp = "^\\d{10}$", message = "Mobile number must be 10 digits")
     private String mobileNumber;
 }

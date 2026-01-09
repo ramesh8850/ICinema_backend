@@ -10,7 +10,6 @@ import com.infy.icinema.repository.MovieRepository;
 import com.infy.icinema.repository.ReviewRepository;
 import com.infy.icinema.repository.UserRepository;
 import com.infy.icinema.service.ReviewService;
-
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -46,8 +45,6 @@ public class ReviewServiceImpl implements ReviewService {
         Review savedReview = reviewRepository.save(review);
 
         // Recalculate Average Rating
-        // We need all reviews to verify average, or we can use a custom query.
-        // For now, let's use the list version we kept in repository.
         List<Review> movieReviews = reviewRepository.findByMovie_Id(movie.getId());
         double average = movieReviews.stream().mapToInt(Review::getRating).average().orElse(0.0);
 

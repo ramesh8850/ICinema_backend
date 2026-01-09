@@ -7,6 +7,7 @@ import com.infy.icinema.repository.UserRepository;
 import com.infy.icinema.service.UserService;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -20,7 +21,7 @@ public class UserServiceImpl implements UserService {
     private ModelMapper modelMapper;
 
     @Autowired
-    private org.springframework.security.crypto.password.PasswordEncoder passwordEncoder;
+    private PasswordEncoder passwordEncoder;
 
     @Override
     public UserDTO registerUser(UserDTO userDTO) {

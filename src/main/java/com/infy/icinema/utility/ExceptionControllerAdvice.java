@@ -1,19 +1,33 @@
 package com.infy.icinema.utility;
 
+import com.infy.icinema.exception.BookingNotFoundException;
+import com.infy.icinema.exception.MovieNotFoundException;
 import com.infy.icinema.exception.ResourceNotFoundException;
+import com.infy.icinema.exception.ScreenNotFoundException;
+import com.infy.icinema.exception.ShowNotFoundException;
+import com.infy.icinema.exception.TheatreNotFoundException;
+import com.infy.icinema.exception.UserNotFoundException;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.HttpRequestMethodNotSupportedException;
+import org.springframework.validation.ObjectError;
+
+import jakarta.validation.ConstraintViolation;
+import jakarta.validation.ConstraintViolationException;
 
 import java.time.LocalDateTime;
+import java.util.stream.Collectors;
 
 @RestControllerAdvice
 public class ExceptionControllerAdvice {
 
-    @ExceptionHandler(org.springframework.web.HttpRequestMethodNotSupportedException.class)
+    @ExceptionHandler(HttpRequestMethodNotSupportedException.class)
     public ResponseEntity<ErrorInfo> handleMethodNotSupportedException(
-            org.springframework.web.HttpRequestMethodNotSupportedException exception) {
+            HttpRequestMethodNotSupportedException exception) {
         ErrorInfo error = new ErrorInfo();
         error.setErrorMessage(exception.getMessage());
         error.setErrorCode(HttpStatus.METHOD_NOT_ALLOWED.value());
@@ -39,12 +53,12 @@ public class ExceptionControllerAdvice {
         return new ResponseEntity<>(error, HttpStatus.NOT_FOUND);
     }
 
-    @ExceptionHandler(org.springframework.web.bind.MethodArgumentNotValidException.class)
+    @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ErrorInfo> handleValidationException(
-            org.springframework.web.bind.MethodArgumentNotValidException exception) {
+            MethodArgumentNotValidException exception) {
         String errorMessage = exception.getBindingResult().getAllErrors().stream()
-                .map(org.springframework.validation.ObjectError::getDefaultMessage)
-                .collect(java.util.stream.Collectors.joining(", "));
+                .map(ObjectError::getDefaultMessage)
+                .collect(Collectors.joining(", "));
 
         ErrorInfo error = new ErrorInfo();
         error.setErrorMessage(errorMessage);
@@ -53,12 +67,12 @@ public class ExceptionControllerAdvice {
         return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
     }
 
-    @ExceptionHandler(jakarta.validation.ConstraintViolationException.class)
+    @ExceptionHandler(ConstraintViolationException.class)
     public ResponseEntity<ErrorInfo> handleConstraintViolationException(
-            jakarta.validation.ConstraintViolationException exception) {
+            ConstraintViolationException exception) {
         String errorMessage = exception.getConstraintViolations().stream()
-                .map(jakarta.validation.ConstraintViolation::getMessage)
-                .collect(java.util.stream.Collectors.joining(", "));
+                .map(ConstraintViolation::getMessage)
+                .collect(Collectors.joining(", "));
 
         ErrorInfo error = new ErrorInfo();
         error.setErrorMessage(errorMessage);
@@ -67,14 +81,13 @@ public class ExceptionControllerAdvice {
         return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
     }
 
-    // Explicit handlers for custom exceptions as requested
     @ExceptionHandler({
-            com.infy.icinema.exception.UserNotFoundException.class,
-            com.infy.icinema.exception.MovieNotFoundException.class,
-            com.infy.icinema.exception.TheatreNotFoundException.class,
-            com.infy.icinema.exception.ScreenNotFoundException.class,
-            com.infy.icinema.exception.ShowNotFoundException.class,
-            com.infy.icinema.exception.BookingNotFoundException.class
+            UserNotFoundException.class,
+            MovieNotFoundException.class,
+            TheatreNotFoundException.class,
+            ScreenNotFoundException.class,
+            ShowNotFoundException.class,
+            BookingNotFoundException.class
     })
     public ResponseEntity<ErrorInfo> handleCustomNotFoundExceptions(ResourceNotFoundException exception) {
         ErrorInfo error = new ErrorInfo();
@@ -83,7 +96,4 @@ public class ExceptionControllerAdvice {
         error.setErrorTimeStamp(LocalDateTime.now());
         return new ResponseEntity<>(error, HttpStatus.NOT_FOUND);
     }
-
-    // Can add more specific handlers if needed, but ResourceNotFoundException
-    // covers the custom ones
 }

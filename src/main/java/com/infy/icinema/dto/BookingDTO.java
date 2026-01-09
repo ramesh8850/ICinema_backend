@@ -1,8 +1,12 @@
 package com.infy.icinema.dto;
 
 import lombok.Data;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.NotEmpty;
 import java.time.LocalDateTime;
 import java.time.LocalDate;
+import java.time.LocalTime;
+import java.util.List;
 
 @Data
 public class BookingDTO {
@@ -16,15 +20,15 @@ public class BookingDTO {
 
     private String bookingStatus;
 
-    @jakarta.validation.constraints.NotNull(message = "User ID cannot be null")
+    @NotNull(message = "User ID cannot be null")
     private Long userId;
 
-    @jakarta.validation.constraints.NotNull(message = "Show ID cannot be null")
+    @NotNull(message = "Show ID cannot be null")
     private Long showId;
     private String movieTitle;
     private LocalDate showDate;
-    private java.time.LocalTime showTime; // explicitly fully qualified to avoid collision if import missing
+    private LocalTime showTime;
 
-    @jakarta.validation.constraints.NotEmpty(message = "At least one seat must be selected")
-    private java.util.List<Long> showSeatIds;
+    @NotEmpty(message = "At least one seat must be selected")
+    private List<Long> showSeatIds;
 }

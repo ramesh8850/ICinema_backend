@@ -11,8 +11,8 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/shows")
-
 public class ShowController {
+
     @Autowired
     private ShowService showService;
 

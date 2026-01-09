@@ -11,13 +11,13 @@ import com.infy.icinema.repository.ShowSeatRepository;
 import com.infy.icinema.repository.TicketRepository;
 import com.infy.icinema.service.PaymentService;
 
-import org.modelmapper.ModelMapper;
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.UUID;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.time.LocalDateTime;
-import java.util.List;
 
 @Service
 @Transactional
@@ -43,7 +43,7 @@ public class PaymentServiceImpl implements PaymentService {
 
         // Generate unique Transaction ID
         String transactionId = "TXN_"
-                + java.util.UUID.randomUUID().toString().replace("-", "").substring(0, 12).toUpperCase();
+                + UUID.randomUUID().toString().replace("-", "").substring(0, 12).toUpperCase();
 
         // 1. Confirm Booking
         booking.setBookingStatus("CONFIRMED");

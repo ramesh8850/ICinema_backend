@@ -6,6 +6,8 @@ import com.infy.icinema.exception.MovieNotFoundException;
 import com.infy.icinema.repository.MovieRepository;
 import com.infy.icinema.service.MovieService;
 import org.modelmapper.ModelMapper;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -22,6 +24,7 @@ public class MovieServiceImpl implements MovieService {
         private ModelMapper modelMapper;
 
         @Override
+        @Cacheable(value = "movies")
         public List<MovieDTO> getAllMovies() {
                 return movieRepository.findAll().stream()
                                 .map(movie -> modelMapper.map(movie, MovieDTO.class))
@@ -29,6 +32,7 @@ public class MovieServiceImpl implements MovieService {
         }
 
         @Override
+        @Cacheable(value = "movie", key = "#id")
         public MovieDTO getMovieById(Long id) {
                 Movie movie = movieRepository.findById(id)
                                 .orElseThrow(() -> new MovieNotFoundException("Movie not found with id: " + id));
@@ -36,6 +40,7 @@ public class MovieServiceImpl implements MovieService {
         }
 
         @Override
+        @CacheEvict(value = "movies", allEntries = true)
         public MovieDTO addMovie(MovieDTO movieDTO) {
                 Movie movie = modelMapper.map(movieDTO, Movie.class);
                 Movie savedMovie = movieRepository.save(movie);

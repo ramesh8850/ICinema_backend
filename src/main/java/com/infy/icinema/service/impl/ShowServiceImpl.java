@@ -1,9 +1,11 @@
 package com.infy.icinema.service.impl;
 
 import com.infy.icinema.dto.ShowDTO;
+import com.infy.icinema.dto.ShowSeatDTO;
 import com.infy.icinema.entity.*;
 import com.infy.icinema.exception.MovieNotFoundException;
 import com.infy.icinema.exception.ScreenNotFoundException;
+import com.infy.icinema.exception.ShowNotFoundException;
 import com.infy.icinema.repository.*;
 import com.infy.icinema.service.ShowService;
 import org.modelmapper.ModelMapper;
@@ -78,13 +80,13 @@ public class ShowServiceImpl implements ShowService {
     }
 
     @Override
-    public List<com.infy.icinema.dto.ShowSeatDTO> getShowSeats(Long showId) {
+    public List<ShowSeatDTO> getShowSeats(Long showId) {
         if (!showRepository.existsById(showId)) {
-            throw new com.infy.icinema.exception.ShowNotFoundException("Show not found with id: " + showId);
+            throw new ShowNotFoundException("Show not found with id: " + showId);
         }
         return showSeatRepository.findByShow_Id(showId).stream()
                 .map(seat -> {
-                    com.infy.icinema.dto.ShowSeatDTO dto = new com.infy.icinema.dto.ShowSeatDTO();
+                    ShowSeatDTO dto = new ShowSeatDTO();
                     dto.setId(seat.getId());
                     dto.setStatus(seat.getStatus());
                     dto.setPrice(seat.getPrice());
@@ -100,8 +102,8 @@ public class ShowServiceImpl implements ShowService {
 
     @Override
     public ShowDTO getShowById(Long showId) {
-        com.infy.icinema.entity.Show show = showRepository.findById(showId)
-                .orElseThrow(() -> new com.infy.icinema.exception.ShowNotFoundException(
+        Show show = showRepository.findById(showId)
+                .orElseThrow(() -> new ShowNotFoundException(
                         "Show not found with id: " + showId));
         return modelMapper.map(show, ShowDTO.class);
     }
