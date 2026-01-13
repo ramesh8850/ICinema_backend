@@ -1,0 +1,56 @@
+USE icinema_db;
+
+-- Procedure to generate seats for Screen 2 if missing
+DELIMITER //
+
+CREATE PROCEDURE GenerateSeatsScreen2()
+BEGIN
+    DECLARE v_screen_id INT DEFAULT 2;
+    DECLARE v_total_seats INT;
+    DECLARE v_seats_exist INT;
+    DECLARE v_rows INT;
+    DECLARE v_cols INT DEFAULT 10;
+    DECLARE v_row_char CHAR(1);
+    DECLARE v_seat_type_id BIGINT;
+    DECLARE i INT DEFAULT 0;
+    DECLARE j INT DEFAULT 1;
+    DECLARE v_count INT DEFAULT 0;
+
+    -- Check if seats exist
+    SELECT COUNT(*) INTO v_seats_exist FROM seats WHERE screen_id = v_screen_id;
+
+    IF v_seats_exist = 0 THEN
+        SELECT total_seats INTO v_total_seats FROM screens WHERE id = v_screen_id;
+        
+        SET v_rows = CEIL(v_total_seats / v_cols);
+        
+        WHILE i < v_rows DO
+            SET v_row_char = CHAR(65 + i); -- A, B, C...
+            
+            -- Determine Seat Type
+            IF i < 3 THEN
+                SET v_seat_type_id = (SELECT id FROM seat_types WHERE name = 'SILVER');
+            ELSEIF i < 7 THEN
+                SET v_seat_type_id = (SELECT id FROM seat_types WHERE name = 'GOLD');
+            ELSE
+                SET v_seat_type_id = (SELECT id FROM seat_types WHERE name = 'PLATINUM');
+            END IF;
+
+            SET j = 1;
+            WHILE j <= v_cols AND v_count < v_total_seats DO
+                INSERT INTO seats (row_name, seat_number, screen_id, seat_type_id)
+                VALUES (v_row_char, j, v_screen_id, v_seat_type_id);
+                
+                SET j = j + 1;
+                SET v_count = v_count + 1;
+            END WHILE;
+            
+            SET i = i + 1;
+        END WHILE;
+    END IF;
+END //
+
+DELIMITER ;
+
+CALL GenerateSeatsScreen2();
+DROP PROCEDURE GenerateSeatsScreen2;

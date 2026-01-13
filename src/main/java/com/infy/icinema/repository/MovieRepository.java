@@ -17,11 +17,11 @@ public interface MovieRepository extends JpaRepository<Movie, Long> {
                         String title,
                         String genre, String language);
 
-        @Query("SELECT m FROM Movie m WHERE " +
-                        "(:title IS NULL OR LOWER(m.title) LIKE LOWER(CONCAT('%', :title, '%'))) AND " +
-                        "(:genre IS NULL OR LOWER(m.genre) LIKE LOWER(CONCAT('%', :genre, '%'))) AND " +
-                        "(:language IS NULL OR LOWER(m.language) LIKE LOWER(CONCAT('%', :language, '%'))) AND " +
-                        "(:rating IS NULL OR m.averageRating >= :rating)")
+        @Query(value = "SELECT * FROM movies m WHERE " +
+                        "(:title IS NULL OR m.title LIKE CONCAT('%', :title, '%')) AND " +
+                        "(:genre IS NULL OR m.genre REGEXP :genre) AND " +
+                        "(:language IS NULL OR m.language REGEXP :language) AND " +
+                        "(:rating IS NULL OR m.average_rating >= :rating)", nativeQuery = true)
         List<Movie> filterMovies(@Param("title") String title,
                         @Param("genre") String genre,
                         @Param("language") String language,

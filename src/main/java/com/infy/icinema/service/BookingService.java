@@ -4,6 +4,7 @@ import com.infy.icinema.dto.BookingDTO;
 import java.util.List;
 
 public interface BookingService {
+    // Service validation
     BookingDTO createBooking(BookingDTO bookingDTO);
 
     List<BookingDTO> getBookingsByUser(Long userId);

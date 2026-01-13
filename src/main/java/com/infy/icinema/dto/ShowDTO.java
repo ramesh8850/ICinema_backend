@@ -1,7 +1,6 @@
 package com.infy.icinema.dto;
 
 import jakarta.validation.constraints.FutureOrPresent;
-import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 import java.time.LocalDate;
@@ -21,18 +20,8 @@ public class ShowDTO implements Serializable {
     @NotNull(message = "Show time cannot be null")
     private LocalTime showTime;
 
-    // Prices are calculated, but if passed they should be positive.
-    // Assuming backend calculates or validates these, but DTO might carry them for
-    // display or update.
-    // For addShow, they are generated. If manual overrides allowed:
-    @Min(value = 0, message = "Price cannot be negative")
-    private Double priceSilver;
-
-    @Min(value = 0, message = "Price cannot be negative")
-    private Double priceGold;
-
-    @Min(value = 0, message = "Price cannot be negative")
-    private Double pricePlatinum;
+    // Dynamic Pricing Map: "SILVER" -> 100.0, "GOLD" -> 200.0
+    private java.util.Map<String, Double> seatPrices = new java.util.HashMap<>();
 
     @NotNull(message = "Movie ID cannot be null")
     private Long movieId;

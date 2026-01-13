@@ -15,7 +15,8 @@ import java.time.LocalTime;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class Show {
+@lombok.EqualsAndHashCode(callSuper = true)
+public class Show extends BaseEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -26,14 +27,7 @@ public class Show {
     @Column(name = "show_time", nullable = false)
     private LocalTime showTime;
 
-    @Column(name = "price_silver", nullable = false)
-    private Double priceSilver;
-
-    @Column(name = "price_gold", nullable = false)
-    private Double priceGold;
-
-    @Column(name = "price_platinum", nullable = false)
-    private Double pricePlatinum;
+    // Prices are now handled by ShowSeatPrice entity linked to SeatType
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "movie_id", nullable = false)

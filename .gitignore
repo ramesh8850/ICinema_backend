@@ -43,3 +43,5 @@ Thumbs.db
 
 ### Data Dumps (Do not commit) ###
 *.sql
+!src/main/resources/schema.sql
+

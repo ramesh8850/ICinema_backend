@@ -13,8 +13,6 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
-import java.util.ArrayList;
-
 @Configuration
 public class ApplicationConfig {
 
@@ -27,7 +25,10 @@ public class ApplicationConfig {
                 .map(user -> new org.springframework.security.core.userdetails.User(
                         user.getEmail(),
                         user.getPassword(),
-                        new ArrayList<>()))
+                        user.getRoles().stream()
+                                .map(role -> new org.springframework.security.core.authority.SimpleGrantedAuthority(
+                                        role.getName()))
+                                .collect(java.util.stream.Collectors.toList())))
                 .orElseThrow(() -> new UsernameNotFoundException("User not found with email: " + username));
     }
 

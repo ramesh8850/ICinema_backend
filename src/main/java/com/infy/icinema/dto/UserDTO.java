@@ -24,4 +24,6 @@ public class UserDTO {
     @NotBlank(message = "Mobile number cannot be blank")
     @Pattern(regexp = "^\\d{10}$", message = "Mobile number must be 10 digits")
     private String mobileNumber;
+
+    private java.util.Set<String> roles;
 }

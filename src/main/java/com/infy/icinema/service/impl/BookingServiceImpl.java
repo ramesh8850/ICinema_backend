@@ -36,6 +36,10 @@ public class BookingServiceImpl implements BookingService {
     private com.infy.icinema.repository.PaymentRepository paymentRepository;
     @Autowired
     private ModelMapper modelMapper;
+    @Autowired
+    private com.infy.icinema.repository.SeatRepository seatRepository;
+    @Autowired
+    private com.infy.icinema.repository.ShowSeatPriceRepository showSeatPriceRepository;
 
     @Override
     public BookingDTO createBooking(BookingDTO bookingDTO) {
@@ -44,24 +48,66 @@ public class BookingServiceImpl implements BookingService {
         Show show = showRepository.findById(bookingDTO.getShowId())
                 .orElseThrow(() -> new ShowNotFoundException("Show not found with id: " + bookingDTO.getShowId()));
 
-        List<com.infy.icinema.entity.ShowSeat> showSeats = showSeatRepository.findByIdIn(bookingDTO.getShowSeatIds());
-
-        if (showSeats.size() != bookingDTO.getShowSeatIds().size()) {
-            throw new RuntimeException("Some seats were not found");
-        }
-
-        // Validate and Block seats and Calculate Cost
+        List<Long> physicalSeatIds = bookingDTO.getShowSeatIds();
+        List<com.infy.icinema.entity.ShowSeat> showSeats = new java.util.ArrayList<>();
         double seatCost = 0.0;
-        for (com.infy.icinema.entity.ShowSeat seat : showSeats) {
-            if (!seat.getShow().getId().equals(show.getId())) {
-                throw new RuntimeException("Seat does not belong to the selected show");
+
+        for (Long seatId : physicalSeatIds) {
+            // Check if ShowSeat already exists (Sparse Storage)
+            // We use a final variable or effective final for lambda, but here we are in a
+            // loop so it's fine to use instance variables
+            com.infy.icinema.entity.ShowSeat showSeat = showSeatRepository.findByShow_IdAndSeat_Id(show.getId(), seatId)
+                    .orElse(null);
+
+            if (showSeat == null) {
+                // Create valid ShowSeat if not exists
+                com.infy.icinema.entity.Seat physicalSeat = seatRepository.findById(seatId)
+                        .orElseThrow(() -> new RuntimeException("Seat not found: " + seatId));
+
+                showSeat = new com.infy.icinema.entity.ShowSeat();
+                showSeat.setShow(show);
+                showSeat.setSeat(physicalSeat);
+                showSeat.setStatus("AVAILABLE");
+
+                // Fetch and set price initially using injected repository
+                com.infy.icinema.entity.ShowSeatPrice priceRule = showSeatPriceRepository
+                        .findByShowIdAndSeatTypeId(show.getId(), physicalSeat.getSeatType().getId())
+                        .orElse(null);
+
+                if (priceRule == null) {
+                    // Here physicalSeat is arguably effectively final as it's defined inside the if
+                    // block,
+                    // but to be consistent and safe, we use the extracted logic.
+                    throw new RuntimeException(
+                            "Price not defined for seat type: " + physicalSeat.getSeatType().getName());
+                }
+                showSeat.setPrice(priceRule.getPrice());
+
+                showSeat = showSeatRepository.save(showSeat);
             }
-            if (!"AVAILABLE".equals(seat.getStatus())) {
-                throw new RuntimeException("Seat is not available: " + seat.getSeat().getSeatNumber());
+
+            if (!"AVAILABLE".equals(showSeat.getStatus())) {
+                throw new RuntimeException("Seat is not available: " + showSeat.getSeat().getSeatNumber());
             }
-            seat.setStatus("BLOCKED");
-            seatCost += seat.getPrice();
+            showSeat.setStatus("BLOCKED");
+
+            // Ensure price is set if missing (legacy/migration)
+            if (showSeat.getPrice() == null) {
+                com.infy.icinema.entity.ShowSeatPrice priceRule = showSeatPriceRepository
+                        .findByShowIdAndSeatTypeId(show.getId(), showSeat.getSeat().getSeatType().getId())
+                        .orElse(null);
+
+                if (priceRule == null) {
+                    throw new RuntimeException(
+                            "Price not defined for seat type: " + showSeat.getSeat().getSeatType().getName());
+                }
+                showSeat.setPrice(priceRule.getPrice());
+            }
+
+            seatCost += showSeat.getPrice();
+            showSeats.add(showSeat);
         }
+
         showSeatRepository.saveAll(showSeats);
 
         // Calculate Fees

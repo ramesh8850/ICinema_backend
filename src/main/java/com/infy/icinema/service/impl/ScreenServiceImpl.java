@@ -49,6 +49,17 @@ public class ScreenServiceImpl implements ScreenService {
         return modelMapper.map(savedScreen, ScreenDTO.class);
     }
 
+    @Override
+    public List<ScreenDTO> getScreensByTheatre(Long theatreId) {
+        List<Screen> screens = screenRepository.findByTheatreId(theatreId);
+        return screens.stream()
+                .map(screen -> modelMapper.map(screen, ScreenDTO.class))
+                .collect(java.util.stream.Collectors.toList());
+    }
+
+    @Autowired
+    private com.infy.icinema.repository.SeatTypeRepository seatTypeRepository;
+
     private void generateSeats(Screen screen) {
         int totalSeats = screen.getTotalSeats();
         int columns = 10;
@@ -57,18 +68,23 @@ public class ScreenServiceImpl implements ScreenService {
             rows++;
         }
 
+        // Cache or Create SeatTypes
+        com.infy.icinema.entity.SeatType silver = getOrCreateSeatType("SILVER");
+        com.infy.icinema.entity.SeatType gold = getOrCreateSeatType("GOLD");
+        com.infy.icinema.entity.SeatType platinum = getOrCreateSeatType("PLATINUM");
+
         List<Seat> seats = new ArrayList<>();
         for (int i = 0; i < rows; i++) {
             char rowChar = (char) ('A' + i);
             String rowName = String.valueOf(rowChar);
 
-            String seatType;
+            com.infy.icinema.entity.SeatType seatType;
             if (i < 3) {
-                seatType = "SILVER";
+                seatType = silver;
             } else if (i < 7) {
-                seatType = "GOLD";
+                seatType = gold;
             } else {
-                seatType = "PLATINUM";
+                seatType = platinum;
             }
 
             for (int j = 1; j <= columns; j++) {
@@ -84,5 +100,15 @@ public class ScreenServiceImpl implements ScreenService {
             }
         }
         seatRepository.saveAll(seats);
+    }
+
+    private com.infy.icinema.entity.SeatType getOrCreateSeatType(String name) {
+        return seatTypeRepository.findByName(name)
+                .orElseGet(() -> {
+                    com.infy.icinema.entity.SeatType newType = new com.infy.icinema.entity.SeatType();
+                    newType.setName(name);
+                    newType.setDescription(name + " Class Seat");
+                    return seatTypeRepository.save(newType);
+                });
     }
 }

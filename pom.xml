@@ -12,7 +12,9 @@
 	<artifactId>icinema</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
 	<name>icinema</name>
-	<description>Demo project for Spring Boot</description>
+	    <description>
+        iCinema Movie Booking Application
+    </description>
 	<url/>
 	<licenses>
 		<license/>

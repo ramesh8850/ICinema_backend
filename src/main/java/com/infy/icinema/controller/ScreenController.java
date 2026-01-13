@@ -22,4 +22,10 @@ public class ScreenController {
         return new ResponseEntity<>(ResponseHandler.generateResponse("Screen added successfully", HttpStatus.CREATED,
                 screenService.addScreen(screenDTO)), HttpStatus.CREATED);
     }
+
+    @GetMapping("/theatre/{theatreId}")
+    public ResponseEntity<Object> getScreensByTheatre(@PathVariable Long theatreId) {
+        return new ResponseEntity<>(ResponseHandler.generateResponse("Screens retrieved successfully", HttpStatus.OK,
+                screenService.getScreensByTheatre(theatreId)), HttpStatus.OK);
+    }
 }

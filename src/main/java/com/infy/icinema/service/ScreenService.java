@@ -4,4 +4,6 @@ import com.infy.icinema.dto.ScreenDTO;
 
 public interface ScreenService {
     ScreenDTO addScreen(ScreenDTO screenDTO);
+
+    java.util.List<ScreenDTO> getScreensByTheatre(Long theatreId);
 }

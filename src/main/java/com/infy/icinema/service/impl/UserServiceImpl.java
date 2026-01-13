@@ -23,12 +23,25 @@ public class UserServiceImpl implements UserService {
     @Autowired
     private PasswordEncoder passwordEncoder;
 
-    @Override
+    @Autowired
+    private com.infy.icinema.repository.RoleRepository roleRepository;
+
     public UserDTO registerUser(UserDTO userDTO) {
         User user = modelMapper.map(userDTO, User.class);
         user.setPassword(passwordEncoder.encode(user.getPassword()));
+
+        // Assign default role: ROLE_USER
+        com.infy.icinema.entity.Role userRole = roleRepository.findByName("ROLE_USER")
+                .orElseThrow(() -> new RuntimeException("Error: Role is not found."));
+        java.util.Set<com.infy.icinema.entity.Role> roles = new java.util.HashSet<>();
+        roles.add(userRole);
+        user.setRoles(roles);
+
         User savedUser = userRepository.save(user);
-        return modelMapper.map(savedUser, UserDTO.class);
+        UserDTO responseDTO = modelMapper.map(savedUser, UserDTO.class);
+        responseDTO.setRoles(savedUser.getRoles().stream().map(com.infy.icinema.entity.Role::getName)
+                .collect(java.util.stream.Collectors.toSet()));
+        return responseDTO;
     }
 
     @Override
@@ -36,9 +49,21 @@ public class UserServiceImpl implements UserService {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new UserNotFoundException("User not found with email: " + email));
 
+        System.out.println("DEBUG LOGIN: Email=" + email);
+        System.out.println("DEBUG LOGIN: InputPass='" + password + "'");
+        System.out.println("DEBUG LOGIN: StoredPass='" + user.getPassword() + "'");
+
         if (!passwordEncoder.matches(password, user.getPassword())) {
+            System.out.println("DEBUG: Mismatch! The correct hash for input '" + password + "' should be: "
+                    + passwordEncoder.encode(password));
             throw new UserNotFoundException("Invalid credentials");
         }
-        return modelMapper.map(user, UserDTO.class);
+        UserDTO responseDTO = modelMapper.map(user, UserDTO.class);
+        responseDTO.setRoles(user.getRoles().stream().map(com.infy.icinema.entity.Role::getName)
+                .collect(java.util.stream.Collectors.toSet()));
+
+        System.out.println("DEBUG LOGIN: Returning UserDTO with roles: " + responseDTO.getRoles());
+
+        return responseDTO;
     }
 }

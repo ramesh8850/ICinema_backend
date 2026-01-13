@@ -6,26 +6,26 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @Entity
-@Table(name = "seats")
+@Table(name = "show_seat_prices", uniqueConstraints = {
+        @UniqueConstraint(columnNames = { "show_id", "seat_type_id" })
+})
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class Seat {
+public class ShowSeatPrice {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "row_name", nullable = false)
-    private String rowName;
-
-    @Column(name = "seat_number", nullable = false)
-    private Integer seatNumber;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "show_id", nullable = false)
+    private Show show;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "seat_type_id", nullable = false)
     private SeatType seatType;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "screen_id", nullable = false)
-    private Screen screen;
+    @Column(nullable = false)
+    private Double price;
 }

@@ -8,6 +8,7 @@ import org.springframework.cache.annotation.EnableCaching;
 @SpringBootApplication
 @EnableScheduling
 @EnableCaching
+@org.springframework.data.jpa.repository.config.EnableJpaAuditing
 public class IcinemaApplication {
 
 	public static void main(String[] args) {

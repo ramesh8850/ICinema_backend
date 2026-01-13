@@ -34,11 +34,19 @@ public class SecurityConfig {
                                 // Explicitly pass the configuration source
                                 .cors(cors -> cors.configurationSource(corsConfigurationSource))
                                 .authorizeHttpRequests(auth -> auth
+                                                // Public Endpoints
                                                 .requestMatchers("/api/users/register/**", "/api/users/login/**",
-                                                                "/actuator/health/**",
-                                                                "/booking/preview/**", "/api/movies/**",
-                                                                "/api/shows/**", "/api/theatres/**")
+                                                                "/actuator/health/**", "/booking/preview/**")
                                                 .permitAll()
+                                                // Public GET endpoints (viewing data)
+                                                .requestMatchers(org.springframework.http.HttpMethod.GET,
+                                                                "/api/movies/**",
+                                                                "/api/shows/**", "/api/theatres/**", "/api/screens/**")
+                                                .permitAll()
+                                                // Secured Admin Endpoints (Modification)
+                                                .requestMatchers("/api/movies/**", "/api/shows/**", "/api/theatres/**",
+                                                                "/api/screens/**")
+                                                .hasAuthority("ROLE_ADMIN")
                                                 .anyRequest().authenticated())
                                 .sessionManagement(sess -> sess.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                                 .authenticationProvider(authenticationProvider)

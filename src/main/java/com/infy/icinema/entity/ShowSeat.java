@@ -6,11 +6,14 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @Entity
-@Table(name = "show_seats")
+@Table(name = "show_seats", uniqueConstraints = {
+        @UniqueConstraint(columnNames = { "show_id", "seat_id" })
+})
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class ShowSeat {
+@lombok.EqualsAndHashCode(callSuper = true)
+public class ShowSeat extends BaseEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;

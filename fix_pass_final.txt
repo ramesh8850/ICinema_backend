@@ -1,0 +1,2 @@
+USE icinema_db;
+UPDATE users SET password = '$2a$10$jbZpquE8LJ2xQTX.3YwWyOH35PWgdPIoi/JSuJamPn6bS9/x9KcYa' WHERE email = 'admin@icinema.com';

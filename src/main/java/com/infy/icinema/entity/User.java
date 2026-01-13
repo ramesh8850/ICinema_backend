@@ -27,7 +27,7 @@ public class User {
     @Column(name = "mobile_number")
     private String mobileNumber;
 
-    // Relationships can be added here or in separate update if needed avoid
-    // circular loops with toString
-    // For now keeping simple mapping
+    @ManyToMany(fetch = FetchType.EAGER)
+    @JoinTable(name = "user_roles", joinColumns = @JoinColumn(name = "user_id"), inverseJoinColumns = @JoinColumn(name = "role_id"))
+    private java.util.Set<Role> roles = new java.util.HashSet<>();
 }
