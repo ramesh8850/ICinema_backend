@@ -36,7 +36,8 @@ public class SecurityConfig {
                                 .authorizeHttpRequests(auth -> auth
                                                 // Public Endpoints
                                                 .requestMatchers("/api/users/register/**", "/api/users/login/**",
-                                                                "/actuator/health/**", "/booking/preview/**")
+                                                                "/actuator/health/**", "/booking/preview/**",
+                                                                "/ws/**")
                                                 .permitAll()
                                                 // Public GET endpoints (viewing data)
                                                 .requestMatchers(org.springframework.http.HttpMethod.GET,

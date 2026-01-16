@@ -22,13 +22,7 @@ public class ApplicationConfig {
     @Bean
     public UserDetailsService userDetailsService() {
         return username -> userRepository.findByEmail(username)
-                .map(user -> new org.springframework.security.core.userdetails.User(
-                        user.getEmail(),
-                        user.getPassword(),
-                        user.getRoles().stream()
-                                .map(role -> new org.springframework.security.core.authority.SimpleGrantedAuthority(
-                                        role.getName()))
-                                .collect(java.util.stream.Collectors.toList())))
+                .map(com.infy.icinema.security.CustomUserDetails::new)
                 .orElseThrow(() -> new UsernameNotFoundException("User not found with email: " + username));
     }
 

@@ -33,16 +33,29 @@ public class JwtAuthFilter extends OncePerRequestFilter {
 
         if (authHeader != null && authHeader.startsWith("Bearer ")) {
             token = authHeader.substring(7);
-            username = jwtUtils.extractUsername(token);
+            try {
+                username = jwtUtils.extractUsername(token);
+            } catch (io.jsonwebtoken.ExpiredJwtException e) {
+                // Token is expired. Ignore it and do not set Authentication context.
+                // This allows the request to proceed as anonymous (e.g., for public endpoints).
+                logger.warn("JWT Token has expired. Proceeding anonymously.");
+            } catch (Exception e) {
+                logger.error("Error parsing JWT Token", e);
+            }
         }
 
         if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
             UserDetails userDetails = userDetailsService.loadUserByUsername(username);
-            if (jwtUtils.validateToken(token, userDetails)) {
-                UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(userDetails,
-                        null, userDetails.getAuthorities());
-                authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-                SecurityContextHolder.getContext().setAuthentication(authToken);
+            try {
+                if (jwtUtils.validateToken(token, userDetails)) {
+                    UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(userDetails,
+                            null, userDetails.getAuthorities());
+                    authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+                    SecurityContextHolder.getContext().setAuthentication(authToken);
+                }
+            } catch (io.jsonwebtoken.ExpiredJwtException e) {
+                // Validated token is expired (should be caught above, but safety check)
+                logger.warn("JWT Token expired during validation.");
             }
         }
         filterChain.doFilter(request, response);

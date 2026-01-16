@@ -40,6 +40,10 @@ public class BookingServiceImpl implements BookingService {
     private com.infy.icinema.repository.SeatRepository seatRepository;
     @Autowired
     private com.infy.icinema.repository.ShowSeatPriceRepository showSeatPriceRepository;
+    @Autowired
+    private org.springframework.messaging.simp.SimpMessagingTemplate messagingTemplate;
+    @Autowired
+    private com.infy.icinema.service.impl.TicketPdfService ticketPdfService; // Injected for secure QR
 
     @Override
     public BookingDTO createBooking(BookingDTO bookingDTO) {
@@ -112,7 +116,7 @@ public class BookingServiceImpl implements BookingService {
 
         // Calculate Fees
         double convenienceFee = seatCost * 0.02; // 2%
-        double gst = convenienceFee * 0.18; // 18% on Fee
+        double gst = seatCost * 0.18; // 18% on Fee
         double totalAmount = seatCost + convenienceFee + gst;
 
         Booking booking = new Booking();
@@ -138,7 +142,24 @@ public class BookingServiceImpl implements BookingService {
         responseDTO.setConvenienceFee(convenienceFee);
         responseDTO.setGst(gst);
 
+        // Broadcast Real-Time Updates
+        broadcastSeatUpdates(show.getId(), showSeats, user.getId());
+
         return responseDTO;
+    }
+
+    private void broadcastSeatUpdates(Long showId, List<com.infy.icinema.entity.ShowSeat> showSeats, Long userId) {
+        for (com.infy.icinema.entity.ShowSeat seat : showSeats) {
+            com.infy.icinema.dto.SeatUpdateDTO update = new com.infy.icinema.dto.SeatUpdateDTO(
+                    showId,
+                    seat.getSeat().getId(),
+                    seat.getStatus(),
+                    "Seat " + seat.getSeat().getSeatNumber() + " is " + seat.getStatus(),
+                    userId);
+
+            // Send to topic: /topic/seat-updates/{showId}
+            messagingTemplate.convertAndSend("/topic/seat-updates/" + showId, update);
+        }
     }
 
     @Override
@@ -147,8 +168,30 @@ public class BookingServiceImpl implements BookingService {
             throw new UserNotFoundException("User not found with id: " + userId);
         }
         return bookingRepository.findByUser_Id(userId).stream()
-                .map(booking -> modelMapper.map(booking, BookingDTO.class))
+                .map(booking -> {
+                    BookingDTO dto = modelMapper.map(booking, BookingDTO.class);
+                    // Manually populate derived fields
+                    dto.setMovieTitle(booking.getShow().getMovie().getTitle());
+                    dto.setTheatreName(booking.getShow().getScreen().getTheatre().getName());
+                    dto.setCity(booking.getShow().getScreen().getTheatre().getCity());
+                    dto.setShowDate(booking.getShow().getShowDate());
+                    dto.setShowTime(booking.getShow().getShowTime());
+
+                    // Fetch Seat Numbers
+                    List<com.infy.icinema.entity.Ticket> tickets = ticketRepository.findByBookingId(booking.getId());
+                    List<String> seatNumbers = tickets.stream()
+                            .map(t -> t.getShowSeat().getSeat().getRowName()
+                                    + t.getShowSeat().getSeat().getSeatNumber())
+                            .collect(Collectors.toList());
+                    dto.setSeatNumbers(seatNumbers);
+
+                    return dto;
+                })
                 .collect(Collectors.toList());
+    }
+
+    private double round(double value) {
+        return Math.round(value * 100.0) / 100.0;
     }
 
     @Override
@@ -159,28 +202,57 @@ public class BookingServiceImpl implements BookingService {
         com.infy.icinema.entity.Payment payment = paymentRepository.findByBooking_Id(bookingId)
                 .orElseThrow(() -> new RuntimeException("Payment not found for booking id: " + bookingId));
 
-        // Re-calculate cost breakdown (or store it in Booking if added later. Re-calc
-        // is safe here)
+        // Re-calculate cost breakdown
         List<com.infy.icinema.entity.Ticket> tickets = ticketRepository.findByBookingId(bookingId);
         List<String> seatNumbers = tickets.stream()
                 .map(t -> t.getShowSeat().getSeat().getRowName() + t.getShowSeat().getSeat().getSeatNumber())
                 .collect(Collectors.toList());
 
-        double seatCost = tickets.stream().mapToDouble(t -> t.getShowSeat().getPrice()).sum();
-        double convenienceFee = seatCost * 0.02;
-        double gst = convenienceFee * 0.18;
+        // Fetch Seat Types
+        String seatTypes = tickets.stream()
+                .map(t -> t.getShowSeat().getSeat().getSeatType().getName())
+                .distinct()
+                .collect(Collectors.joining(", "));
+
+        double seatCost = round(tickets.stream().mapToDouble(t -> t.getShowSeat().getPrice()).sum());
+        double convenienceFee = round(seatCost * 0.02);
+        double gst = round(seatCost * 0.18);
 
         com.infy.icinema.dto.TicketDTO dto = new com.infy.icinema.dto.TicketDTO();
         dto.setMovieTitle(booking.getShow().getMovie().getTitle());
+        dto.setMoviePosterUrl(booking.getShow().getMovie().getImageUrl());
+
+        // Secure QR Payload
+        try {
+            String securePayload = ticketPdfService.generateSecurePayload(booking.getId());
+            dto.setQrPayload(securePayload);
+        } catch (Exception e) {
+            // Fallback or log error
+            dto.setQrPayload("d2aa18b2-1dc2-4791-8645-f6a5f8298bf9: " + booking.getId());
+        }
         dto.setTheatreName(booking.getShow().getScreen().getTheatre().getName());
+        dto.setScreenName(booking.getShow().getScreen().getScreenName());
         dto.setCity(booking.getShow().getScreen().getTheatre().getCity());
         dto.setSeatNumbers(seatNumbers);
+        dto.setSeatType(seatTypes); // Set Seat Type
         dto.setCensorRating(booking.getShow().getMovie().getCensorRating());
 
         dto.setSeatCost(seatCost);
         dto.setConvenienceFee(convenienceFee);
         dto.setGst(gst);
-        dto.setTotalAmount(booking.getTotalAmount());
+
+        // Calculate original total to find discount
+        double originalTotal = round(seatCost + convenienceFee + gst);
+        double actualPaid = round(payment.getAmountPaid());
+        double discount = round(originalTotal - actualPaid);
+
+        if (discount > 0.5) { // Threshold for floating point diff
+            dto.setDiscountAmount(discount);
+        } else {
+            dto.setDiscountAmount(0.0);
+        }
+
+        dto.setTotalAmount(actualPaid);
 
         dto.setTransactionId(payment.getTransactionId());
         dto.setShowDate(booking.getShow().getShowDate());

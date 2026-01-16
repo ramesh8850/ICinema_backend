@@ -18,6 +18,8 @@ public class ReviewController {
 
     @PostMapping
     public ResponseEntity<Object> addReview(@Valid @RequestBody ReviewDTO reviewDTO) {
+        System.out.println(
+                "DEBUG: addReview called. UserID: " + reviewDTO.getUserId() + ", MovieID: " + reviewDTO.getMovieId());
         return new ResponseEntity<>(ResponseHandler.generateResponse("Review added successfully", HttpStatus.CREATED,
                 reviewService.addReview(reviewDTO)), HttpStatus.CREATED);
     }

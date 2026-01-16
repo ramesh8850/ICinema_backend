@@ -18,6 +18,9 @@ public class BookingDTO {
     private Double convenienceFee;
     private Double gst;
 
+    private String transactionId;
+    private Double discountAmount;
+
     private String bookingStatus;
 
     @NotNull(message = "User ID cannot be null")
@@ -26,6 +29,9 @@ public class BookingDTO {
     @NotNull(message = "Show ID cannot be null")
     private Long showId;
     private String movieTitle;
+    private String theatreName;
+    private String city;
+    private List<String> seatNumbers;
     private LocalDate showDate;
     private LocalTime showTime;
 

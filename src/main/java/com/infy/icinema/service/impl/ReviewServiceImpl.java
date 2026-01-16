@@ -38,14 +38,20 @@ public class ReviewServiceImpl implements ReviewService {
         Movie movie = movieRepository.findById(reviewDTO.getMovieId())
                 .orElseThrow(() -> new MovieNotFoundException("Movie not found with id: " + reviewDTO.getMovieId()));
 
+        if (reviewRepository.existsByUser_IdAndMovie_Id(user.getId(), movie.getId())) {
+            throw new RuntimeException("User has already reviewed this movie!");
+        }
+
         Review review = modelMapper.map(reviewDTO, Review.class);
         review.setUser(user);
         review.setMovie(movie);
 
         Review savedReview = reviewRepository.save(review);
+        reviewRepository.flush(); // Ensure it's in DB before calc
 
         // Recalculate Average Rating
         List<Review> movieReviews = reviewRepository.findByMovie_Id(movie.getId());
+
         double average = movieReviews.stream().mapToInt(Review::getRating).average().orElse(0.0);
 
         // Round to 1 decimal place

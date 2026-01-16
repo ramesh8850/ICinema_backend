@@ -31,6 +31,8 @@ public class PaymentServiceImpl implements PaymentService {
     private TicketRepository ticketRepository;
     @Autowired
     private ShowSeatRepository showSeatRepository;
+    @Autowired
+    private com.infy.icinema.service.EmailService emailService;
 
     @Override
     public PaymentDTO makePayment(PaymentDTO paymentDTO) {
@@ -59,8 +61,28 @@ public class PaymentServiceImpl implements PaymentService {
 
         // 3. Save Payment
         Payment payment = new Payment();
-        payment.setAmountPaid(paymentDTO.getAmountPaid());
-        payment.setPaymentMode(paymentDTO.getPaymentMode());
+
+        // --- Enforce Backend Discount Logic ---
+        List<Ticket> currentTickets = ticketRepository.findByBookingId(booking.getId());
+        double seatCost = round(currentTickets.stream().mapToDouble(t -> t.getShowSeat().getPrice()).sum());
+        double convenienceFee = round(seatCost * 0.02);
+        double gst = round(seatCost * 0.18); // User changed logic: 18% on Seat Price
+        double originalTotal = round(seatCost + convenienceFee + gst);
+
+        double finalAmount = originalTotal;
+        String mode = paymentDTO.getPaymentMode();
+
+        double discount = 0.0;
+        if ("CREDIT_CARD".equalsIgnoreCase(mode)) {
+            discount = round(originalTotal * 0.10);
+            finalAmount = round(originalTotal - discount);
+        } else if ("DEBIT_CARD".equalsIgnoreCase(mode)) {
+            discount = round(originalTotal * 0.05);
+            finalAmount = round(originalTotal - discount);
+        }
+
+        payment.setAmountPaid(finalAmount); // Override with backend calculated amount
+        payment.setPaymentMode(mode);
         payment.setTransactionId(transactionId);
         payment.setPaymentTime(LocalDateTime.now());
         payment.setBooking(booking);
@@ -75,6 +97,36 @@ public class PaymentServiceImpl implements PaymentService {
         responseDTO.setPaymentMode(savedPayment.getPaymentMode());
         responseDTO.setBookingId(savedPayment.getBooking().getId());
 
+        // Send Email Async
+        try {
+            com.infy.icinema.dto.BookingDTO emailDTO = new com.infy.icinema.dto.BookingDTO();
+            emailDTO.setId(booking.getId());
+            emailDTO.setMovieTitle(booking.getShow().getMovie().getTitle());
+            emailDTO.setTheatreName(booking.getShow().getScreen().getTheatre().getName());
+            emailDTO.setCity(booking.getShow().getScreen().getTheatre().getCity());
+            emailDTO.setShowDate(booking.getShow().getShowDate());
+            emailDTO.setShowTime(booking.getShow().getShowTime());
+            emailDTO.setTotalAmount(finalAmount); // Show actual paid amount
+            emailDTO.setDiscountAmount(discount > 0.5 ? discount : 0.0); // Show discount if any
+            emailDTO.setTransactionId(transactionId);
+            emailDTO.setSeatCost(seatCost);
+            emailDTO.setConvenienceFee(convenienceFee);
+            emailDTO.setGst(gst);
+
+            List<String> seats = tickets.stream()
+                    .map(t -> t.getShowSeat().getSeat().getRowName() + t.getShowSeat().getSeat().getSeatNumber())
+                    .collect(java.util.stream.Collectors.toList());
+            emailDTO.setSeatNumbers(seats);
+
+            emailService.sendBookingConfirmation(booking.getUser().getEmail(), emailDTO);
+        } catch (Exception e) {
+            System.err.println("Error sending email: " + e.getMessage());
+        }
+
         return responseDTO;
+    }
+
+    private double round(double value) {
+        return Math.round(value * 100.0) / 100.0;
     }
 }

@@ -36,12 +36,9 @@ public class ExceptionControllerAdvice {
     }
 
     @ExceptionHandler(Exception.class)
-    public ResponseEntity<ErrorInfo> handleGeneralException(Exception exception) {
-        ErrorInfo error = new ErrorInfo();
-        error.setErrorMessage(exception.getMessage());
-        error.setErrorCode(HttpStatus.INTERNAL_SERVER_ERROR.value());
-        error.setErrorTimeStamp(LocalDateTime.now());
-        return new ResponseEntity<>(error, HttpStatus.INTERNAL_SERVER_ERROR);
+    public ResponseEntity<String> handleException(Exception ex) {
+        ex.printStackTrace(); // Log the full stack trace
+        return new ResponseEntity<>("An internal error occurred: " + ex.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
     @ExceptionHandler(ResourceNotFoundException.class)
@@ -59,6 +56,8 @@ public class ExceptionControllerAdvice {
         String errorMessage = exception.getBindingResult().getAllErrors().stream()
                 .map(ObjectError::getDefaultMessage)
                 .collect(Collectors.joining(", "));
+
+        System.out.println("DEBUG: Validation Failed: " + errorMessage); // Add this line
 
         ErrorInfo error = new ErrorInfo();
         error.setErrorMessage(errorMessage);

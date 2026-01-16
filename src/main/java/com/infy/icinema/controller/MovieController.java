@@ -53,9 +53,14 @@ public class MovieController {
                         @RequestParam(required = false) String genre,
                         @RequestParam(required = false) String language,
                         @RequestParam(required = false) Double rating) {
+
+                // Hack: Convert comma-separated string to pipe-separated regex for backend
+                String genreRegex = (genre != null) ? genre.replace(",", "|") : null;
+                String langRegex = (language != null) ? language.replace(",", "|") : null;
+
                 return new ResponseEntity<>(
                                 ResponseHandler.generateResponse("Movies filtered successfully", HttpStatus.OK,
-                                                movieService.filterMovies(title, genre, language, rating)),
+                                                movieService.filterMovies(title, genreRegex, langRegex, rating)),
                                 HttpStatus.OK);
         }
 }

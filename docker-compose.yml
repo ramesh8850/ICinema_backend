@@ -43,9 +43,27 @@ services:
       # Security
       ALLOWED_ORIGINS: http://localhost:4200
       JWT_SECRET: 404E635266556A586E3272357538782F413F4428472B4B6250645367566B5970
+      # Mail (Testing Gmail)
+      SPRING_MAIL_HOST: smtp.gmail.com
+      SPRING_MAIL_PORT: 587
+      SPRING_MAIL_USERNAME: ${MAIL_USERNAME}
+      SPRING_MAIL_PASSWORD: ${MAIL_PASSWORD}
+      SPRING_MAIL_PROPERTIES_MAIL_SMTP_AUTH: "true"
+      SPRING_MAIL_PROPERTIES_MAIL_SMTP_STARTTLS_ENABLE: "true"
+      # SPRING_MAIL_HOST: mailhog
+      # SPRING_MAIL_PORT: 1025
     networks:
       - icinema-net
     restart: on-failure
+
+  mailhog:
+    image: mailhog/mailhog
+    container_name: mailhog
+    ports:
+      - "1025:1025" # SMTP server
+      - "8025:8025" # Web UI
+    networks:
+      - icinema-net
 
 volumes:
   db_data:
