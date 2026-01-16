@@ -34,15 +34,15 @@ services:
       # Profile
       SPRING_PROFILES_ACTIVE: prod
       # Database
-      DB_URL: jdbc:mysql://mysqldb:3306/icinema_db
-      DB_USERNAME: ramesh8850
-      DB_PASSWORD: R@mesh8850
+      DB_URL: ${DB_URL}
+      DB_USERNAME: ${DB_USERNAME}
+      DB_PASSWORD: ${DB_PASSWORD}
       # Redis
       REDIS_HOST: redis
       REDIS_PORT: 6379
       # Security
-      ALLOWED_ORIGINS: http://localhost:4200
-      JWT_SECRET: 404E635266556A586E3272357538782F413F4428472B4B6250645367566B5970
+      ALLOWED_ORIGINS: ${ALLOWED_ORIGINS}
+      JWT_SECRET: ${JWT_SECRET}
       # Mail (Testing Gmail)
       SPRING_MAIL_HOST: smtp.gmail.com
       SPRING_MAIL_PORT: 587

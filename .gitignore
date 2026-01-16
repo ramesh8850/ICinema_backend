@@ -44,4 +44,9 @@ Thumbs.db
 ### Data Dumps (Do not commit) ###
 *.sql
 !src/main/resources/schema.sql
+.env
+
+### Secrets ###
+src/main/resources/application.properties
+src/main/resources/application-prod.properties
 
