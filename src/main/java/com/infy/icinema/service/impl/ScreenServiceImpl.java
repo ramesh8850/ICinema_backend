@@ -2,11 +2,9 @@ package com.infy.icinema.service.impl;
 
 import com.infy.icinema.dto.ScreenDTO;
 import com.infy.icinema.entity.Screen;
-import com.infy.icinema.entity.Seat;
 import com.infy.icinema.entity.Theatre;
 import com.infy.icinema.exception.TheatreNotFoundException;
 import com.infy.icinema.repository.ScreenRepository;
-import com.infy.icinema.repository.SeatRepository;
 import com.infy.icinema.repository.TheatreRepository;
 import com.infy.icinema.service.ScreenService;
 import org.modelmapper.ModelMapper;
@@ -26,9 +24,6 @@ public class ScreenServiceImpl implements ScreenService {
 
     @Autowired
     private TheatreRepository theatreRepository;
-
-    @Autowired
-    private SeatRepository seatRepository;
 
     @Autowired
     private ModelMapper modelMapper;
@@ -58,6 +53,9 @@ public class ScreenServiceImpl implements ScreenService {
     }
 
     @Autowired
+    private org.springframework.jdbc.core.JdbcTemplate jdbcTemplate;
+
+    @Autowired
     private com.infy.icinema.repository.SeatTypeRepository seatTypeRepository;
 
     private void generateSeats(Screen screen) {
@@ -68,38 +66,41 @@ public class ScreenServiceImpl implements ScreenService {
             rows++;
         }
 
-        // Cache or Create SeatTypes
+        // Cache or Create SeatTypes (Hibernate is fine here, only 3 calls)
         com.infy.icinema.entity.SeatType silver = getOrCreateSeatType("SILVER");
         com.infy.icinema.entity.SeatType gold = getOrCreateSeatType("GOLD");
         com.infy.icinema.entity.SeatType platinum = getOrCreateSeatType("PLATINUM");
 
-        List<Seat> seats = new ArrayList<>();
+        String sql = "INSERT INTO seats (row_name, seat_number, screen_id, seat_type_id) VALUES (?, ?, ?, ?)";
+
+        List<Object[]> batchArgs = new ArrayList<>();
+        int seatsCreated = 0;
+
         for (int i = 0; i < rows; i++) {
             char rowChar = (char) ('A' + i);
             String rowName = String.valueOf(rowChar);
 
-            com.infy.icinema.entity.SeatType seatType;
+            Long seatTypeId;
             if (i < 3) {
-                seatType = silver;
+                seatTypeId = silver.getId();
             } else if (i < 7) {
-                seatType = gold;
+                seatTypeId = gold.getId();
             } else {
-                seatType = platinum;
+                seatTypeId = platinum.getId();
             }
 
             for (int j = 1; j <= columns; j++) {
-                if (seats.size() >= totalSeats)
-                    break; // Stop if we reached totalSeats
+                if (seatsCreated >= totalSeats)
+                    break;
 
-                Seat seat = new Seat();
-                seat.setRowName(rowName);
-                seat.setSeatNumber(j);
-                seat.setSeatType(seatType);
-                seat.setScreen(screen);
-                seats.add(seat);
+                // Add to batch: row_name, seat_number, screen_id, seat_type_id
+                batchArgs.add(new Object[] { rowName, j, screen.getId(), seatTypeId });
+                seatsCreated++;
             }
         }
-        seatRepository.saveAll(seats);
+
+        // Execute Batch Insert (One Database Round-trip)
+        jdbcTemplate.batchUpdate(sql, batchArgs);
     }
 
     private com.infy.icinema.entity.SeatType getOrCreateSeatType(String name) {
