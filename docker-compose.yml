@@ -43,6 +43,9 @@ services:
       # Security
       ALLOWED_ORIGINS: ${ALLOWED_ORIGINS}
       JWT_SECRET: ${JWT_SECRET}
+      # Brevo (Bravo) API Key
+      BREVO_API_KEY: ${BREVO_API_KEY}
+      BREVO_SENDER_EMAIL: ${BREVO_SENDER_EMAIL}
       # Mail (Testing Gmail)
       SPRING_MAIL_HOST: smtp.gmail.com
       SPRING_MAIL_PORT: 587
