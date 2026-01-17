@@ -2,7 +2,6 @@ package com.infy.icinema.service.impl;
 
 import com.infy.icinema.dto.BookingDTO;
 import com.infy.icinema.service.EmailService;
-import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.mail.javamail.JavaMailSender;
@@ -45,9 +44,11 @@ public class EmailServiceImpl implements EmailService {
             mailSender.send(message);
             System.out.println("Email sent successfully to: " + toEmail);
 
-        } catch (MessagingException e) {
-            System.err.println("Failed to send email: " + e.getMessage());
-            e.printStackTrace();
+        } catch (Exception e) {
+            // Log primarily as warning to avoid cluttering production logs with stack
+            // traces for timeout issues
+            System.err.println("Failed to send email to " + toEmail + ". Reason: " + e.getMessage());
+            // Debug level: e.printStackTrace();
         }
     }
 

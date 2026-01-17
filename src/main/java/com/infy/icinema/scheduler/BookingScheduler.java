@@ -36,6 +36,10 @@ public class BookingScheduler {
                 try {
                     bookingService.cancelBooking(booking.getId());
                     System.out.println("Auto-cancelled expired booking ID: " + booking.getId());
+                } catch (org.springframework.orm.ObjectOptimisticLockingFailureException
+                        | org.hibernate.StaleObjectStateException e) {
+                    System.out.println(
+                            "Skipped auto-cancel for booking ID: " + booking.getId() + " (State changed concurrently)");
                 } catch (Exception e) {
                     System.err.println("Failed to auto-cancel booking ID: " + booking.getId() + " - " + e.getMessage());
                 }
